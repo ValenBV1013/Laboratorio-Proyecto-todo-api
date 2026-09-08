@@ -6,16 +6,13 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
-// Conectar a MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongodb:27017/tododb')
-  .then(() => console.log('>> [NEXUS CORE V2]: Conectado a MongoDB'))
+  .then(() => console.log('>> [NEXUS CORE V3]: Conectado a MongoDB'))
   .catch(err => console.error(' Error MongoDB:', err));
 
-// Modelo de Tarea
 const Task = mongoose.model('Task', {
   title: { type: String, required: true },
   description: String,
@@ -23,134 +20,176 @@ const Task = mongoose.model('Task', {
   createdAt: { type: Date, default: Date.now }
 });
 
-// INTERFAZ GRÁFICA V2 - PURPLE CYBERPUNK EDITION
 app.get('/', (req, res) => {
   res.send(`<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS CORE | Cyberpunk Terminal</title>
-    <script src="https://tailwindcss.com"></script>
+    <title>NEXUS CORE | Cyberpunk Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: 'JetBrains Mono', monospace;
             background-color: #030008;
             color: #d8b4fe;
-            overflow-x: hidden;
+            min-height: 100vh;
+            padding: 30px 20px;
             background-image: 
-                radial-gradient(circle at 10% 20%, rgba(147, 51, 234, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 90% 80%, rgba(217, 70, 239, 0.1) 0%, transparent 40%);
+                radial-gradient(circle at 10% 20%, rgba(147, 51, 234, 0.18) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(217, 70, 239, 0.12) 0%, transparent 40%);
         }
-        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
         
-        /* Efectos de neón morado intensos */
+        /* Tarjetas estilo Cyberpunk Glassmorphism */
         .cyber-card {
-            background: rgba(15, 5, 29, 0.75);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(168, 85, 247, 0.3);
-            box-shadow: 0 0 25px rgba(168, 85, 247, 0.12), inset 0 0 15px rgba(168, 85, 247, 0.05);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(15, 5, 29, 0.85);
+            border: 1px solid rgba(168, 85, 247, 0.35);
+            box-shadow: 0 0 25px rgba(168, 85, 247, 0.15), inset 0 0 15px rgba(168, 85, 247, 0.05);
+            border-radius: 20px;
+            padding: 24px;
+            backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
         }
         .cyber-card:hover {
             border-color: rgba(217, 70, 239, 0.7);
-            box-shadow: 0 0 35px rgba(217, 70, 239, 0.3), inset 0 0 20px rgba(217, 70, 239, 0.1);
+            box-shadow: 0 0 35px rgba(217, 70, 239, 0.3);
         }
-        .neon-glow-text {
-            text-shadow: 0 0 10px rgba(216, 180, 254, 0.6), 0 0 20px rgba(168, 85, 247, 0.4);
+
+        /* Header */
+        .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .pulse-dot { width: 14px; height: 14px; background-color: #d946ef; border-radius: 50%; box-shadow: 0 0 12px #d946ef; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 20px #d946ef; } 100% { transform: scale(0.95); opacity: 0.8; } }
+        
+        h1 { font-family: 'Orbitron', sans-serif; font-weight: 900; font-size: 1.6rem; color: #ffffff; letter-spacing: 2px; text-shadow: 0 0 10px rgba(216, 180, 254, 0.6); }
+        .badge-group { display: flex; gap: 8px; }
+        .badge { background: rgba(88, 28, 135, 0.5); border: 1px solid rgba(168, 85, 247, 0.5); color: #e9d5ff; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; }
+
+        /* Estadísticas Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+        .stat-card { display: flex; justify-content: space-between; align-items: center; }
+        .stat-label { font-size: 0.75rem; color: #c084fc; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+        .stat-value { font-family: 'Orbitron', sans-serif; font-size: 2.2rem; font-weight: 900; color: #ffffff; margin-top: 5px; }
+        .stat-icon { font-size: 1.8rem; padding: 12px; background: rgba(147, 51, 234, 0.15); border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+        /* Formulario */
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: #e879f9; letter-spacing: 1.5px; margin-bottom: 16px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; }
+        @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
+        
+        input {
+            background: #06010f;
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            border-radius: 12px;
+            padding: 12px 16px;
+            color: #fff;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border 0.3s;
         }
-        .neon-btn {
+        input:focus { border-color: #e879f9; box-shadow: 0 0 10px rgba(232, 121, 249, 0.3); }
+        
+        .cyber-btn {
             background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
-            box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
-            transition: all 0.3s ease;
+            color: white;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.5);
+            transition: all 0.3s;
+            letter-spacing: 1px;
         }
-        .neon-btn:hover {
-            box-shadow: 0 0 30px rgba(219, 39, 119, 0.7);
-            transform: translateY(-2px);
+        .cyber-btn:hover { box-shadow: 0 0 25px rgba(219, 39, 119, 0.8); transform: translateY(-2px); }
+
+        /* Lista de Tareas */
+        .tasks-list { display: flex; flex-direction: column; gap: 12px; }
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(8, 2, 18, 0.8);
+            border: 1px solid rgba(168, 85, 247, 0.25);
+            padding: 14px 18px;
+            border-radius: 14px;
+            transition: all 0.2s;
         }
-        /* Línea de escaneo animada */
-        @keyframes scanline {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(1000%); }
-        }
-        .scanline {
-            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, rgba(217, 70, 239, 0.5), transparent);
-            animation: scanline 8s linear infinite;
-            pointer-events: none;
-        }
+        .task-item:hover { border-color: rgba(168, 85, 247, 0.6); }
+        .task-left { display: flex; align-items: center; gap: 14px; }
+        .task-title { font-family: 'Orbitron', sans-serif; font-size: 0.9rem; color: #fff; font-weight: 700; }
+        .task-desc { font-size: 0.75rem; color: #a78bfa; margin-top: 4px; }
+        .completed .task-title { text-decoration: line-through; color: #6b21a8; }
+        .completed .task-desc { color: #4c1d95; }
+        
+        input[type="checkbox"] { width: 20px; height: 20px; accent-color: #d946ef; cursor: pointer; }
+        .delete-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.7; transition: opacity 0.2s; }
+        .delete-btn:hover { opacity: 1; }
+        .empty-msg { text-align: center; color: #7e22ce; font-size: 0.8rem; padding: 20px; letter-spacing: 1px; }
     </style>
 </head>
-<body class="min-h-screen p-6 md:p-10 relative">
-    <div class="scanline"></div>
-
-    <div class="max-w-4xl mx-auto space-y-8 relative z-10">
+<body>
+    <div class="container">
         
-        <!-- Header Cibernético -->
-        <header class="cyber-card p-6 rounded-3xl flex flex-col md:flex-row justify-between items-center gap-4">
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <div class="w-5 h-5 bg-fuchsia-500 rounded-full animate-ping absolute"></div>
-                    <div class="w-5 h-5 bg-purple-600 rounded-full relative"></div>
-                </div>
+        <!-- Header -->
+        <header class="cyber-card header-flex">
+            <div class="logo-area">
+                <div class="pulse-dot"></div>
                 <div>
-                    <h1 class="font-orbitron text-2xl font-black text-white tracking-widest neon-glow-text">NEXUS CORE</h1>
-                    <p class="text-xs text-purple-400 font-mono tracking-wider">SECURE SYSTEM // PROTOCOL V2.0</p>
+                    <h1>NEXUS CORE</h1>
+                    <span style="font-size: 0.7rem; color: #a855f7; letter-spacing: 2px;">SECURE SYSTEM // PROTOCOL V3.0</span>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <span class="px-3 py-1 bg-purple-950/80 text-purple-300 text-xs font-bold rounded-lg border border-purple-700/50 shadow-inner">CORE: ONLINE</span>
-                <span class="px-3 py-1 bg-fuchsia-950/80 text-fuchsia-300 text-xs font-bold rounded-lg border border-fuchsia-700/50 shadow-inner">ATLAS DB</span>
+            <div class="badge-group">
+                <span class="badge">ONLINE</span>
+                <span class="badge" style="background: rgba(147, 51, 234, 0.3);">MONGODB ATLAS</span>
             </div>
         </header>
 
-        <!-- Métricas Holográficas -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div class="cyber-card p-6 rounded-2xl flex items-center justify-between">
+        <!-- Estadísticas -->
+        <div class="stats-grid">
+            <div class="cyber-card stat-card">
                 <div>
-                    <p class="text-xs text-purple-400 font-bold uppercase tracking-wider">Total Registros</p>
-                    <h2 id="total-tasks" class="font-orbitron text-4xl font-black text-white mt-1">0</h2>
+                    <div class="stat-label">Total Misiones</div>
+                    <div id="total-tasks" class="stat-value">0</div>
                 </div>
-                <div class="p-3.5 bg-purple-900/30 rounded-xl text-purple-300 text-2xl border border-purple-700/30">🔮</div>
+                <div class="stat-icon">🔮</div>
             </div>
-            <div class="cyber-card p-6 rounded-2xl flex items-center justify-between">
+            <div class="cyber-card stat-card">
                 <div>
-                    <p class="text-xs text-purple-400 font-bold uppercase tracking-wider">En Ejecución</p>
-                    <h2 id="pending-tasks" class="font-orbitron text-4xl font-black text-amber-300 mt-1">0</h2>
+                    <div class="stat-label">En Ejecución</div>
+                    <div id="pending-tasks" class="stat-value" style="color: #fbbf24;">0</div>
                 </div>
-                <div class="p-3.5 bg-amber-950/30 rounded-xl text-amber-300 text-2xl border border-amber-700/30">⚡</div>
+                <div class="stat-icon">⚡</div>
             </div>
-            <div class="cyber-card p-6 rounded-2xl flex items-center justify-between">
+            <div class="cyber-card stat-card">
                 <div>
-                    <p class="text-xs text-purple-400 font-bold uppercase tracking-wider">Sincronizadas</p>
-                    <h2 id="completed-tasks" class="font-orbitron text-4xl font-black text-fuchsia-400 mt-1">0</h2>
+                    <div class="stat-label">Sincronizadas</div>
+                    <div id="completed-tasks" class="stat-value" style="color: #e879f9;">0</div>
                 </div>
-                <div class="p-3.5 bg-fuchsia-950/30 rounded-xl text-fuchsia-300 text-2xl border border-fuchsia-700/30">🛡️</div>
+                <div class="stat-icon">🛡️</div>
             </div>
         </div>
 
-        <!-- Terminal de Ingreso de Misión -->
-        <div class="cyber-card p-6 rounded-3xl space-y-4">
-            <h2 class="font-orbitron text-xs font-bold text-fuchsia-400 tracking-widest uppercase flex items-center gap-2">
-                <span class="text-purple-500">▶</span> Iniciar Nueva Tarea / Misión
-            </h2>
-            <form id="task-form" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <input type="text" id="title" placeholder="Título de la misión..." required 
-                    class="bg-[#0b0218] border border-purple-900/60 rounded-xl px-4 py-3 text-white placeholder-purple-600/70 focus:outline-none focus:border-fuchsia-500 focus:ring-1 focus:ring-fuchsia-500 text-sm">
-                <input type="text" id="description" placeholder="Parámetros o descripción..." 
-                    class="bg-[#0b0218] border border-purple-900/60 rounded-xl px-4 py-3 text-white placeholder-purple-600/70 focus:outline-none focus:border-fuchsia-500 focus:ring-1 focus:ring-fuchsia-500 text-sm">
-                <button type="submit" class="neon-btn text-white font-orbitron font-bold rounded-xl px-6 py-3 text-sm flex items-center justify-center gap-2 tracking-wider">
-                    EJECUTAR
-                </button>
+        <!-- Formulario -->
+        <div class="cyber-card">
+            <div class="section-title"><span>▶</span> Registrar Nueva Misión / Tarea</div>
+            <form id="task-form" class="form-grid">
+                <input type="text" id="title" placeholder="Título de la misión..." required>
+                <input type="text" id="description" placeholder="Parámetros o descripción...">
+                <button type="submit" class="cyber-btn">EJECUTAR</button>
             </form>
         </div>
 
-        <!-- Contenedor de Registros -->
-        <div class="cyber-card p-6 rounded-3xl space-y-4">
-            <h2 class="font-orbitron text-xs font-bold text-fuchsia-400 tracking-widest uppercase">Base de Datos Activa // Misiones</h2>
-            <div id="tasks-container" class="space-y-3">
-                <!-- Dinámico -->
+        <!-- Listado -->
+        <div class="cyber-card">
+            <div class="section-title">Base de Datos Activa // Misiones</div>
+            <div id="tasks-container" class="tasks-list">
+                <!-- Se llena por JS -->
             </div>
         </div>
 
@@ -172,27 +211,24 @@ app.get('/', (req, res) => {
 
                 const container = document.getElementById('tasks-container');
                 if (tasks.length === 0) {
-                    container.innerHTML = \`<p class="text-center text-purple-500/60 py-8 text-xs font-mono tracking-widest">NINGÚN REGISTRO DETECTADO EN EL NÚCLEO</p>\`;
+                    container.innerHTML = '<div class="empty-msg">NINGÚN REGISTRO DETECTADO EN EL NÚCLEO</div>';
                     return;
                 }
 
                 container.innerHTML = tasks.map(task => \`
-                    <div class="flex items-center justify-between bg-[#0b0218]/80 p-4 rounded-2xl border \${task.completed ? 'border-fuchsia-800/40 bg-fuchsia-950/10' : 'border-purple-900/40'} transition-all hover:border-purple-500">
-                        <div class="flex items-center space-x-4">
-                            <input type="checkbox" \${task.completed ? 'checked' : ''} onclick="toggleTask('\${task._id}', \${!task.completed})"
-                                class="w-5 h-5 rounded border-purple-700 bg-purple-950 text-fuchsia-500 focus:ring-0 cursor-pointer accent-fuchsia-500">
+                    <div class="task-item \${task.completed ? 'completed' : ''}">
+                        <div class="task-left">
+                            <input type="checkbox" \${task.completed ? 'checked' : ''} onclick="toggleTask('\${task._id}', \${!task.completed})">
                             <div>
-                                <h3 class="font-orbitron font-bold text-sm text-white \${task.completed ? 'line-through text-purple-500/50' : ''}">\${task.title}</h3>
-                                <p class="text-xs text-purple-400/80 mt-1">\${task.description || 'Sin parámetros adicionales'}</p>
+                                <div class="task-title">\${task.title}</div>
+                                <div class="task-desc">\${task.description || 'Sin parámetros adicionales'}</div>
                             </div>
                         </div>
-                        <button onclick="deleteTask('\${task._id}')" class="text-purple-600 hover:text-fuchsia-400 transition-colors p-2 text-base">
-                            🗑️
-                        </button>
+                        <button onclick="deleteTask('\${task._id}')" class="delete-btn" title="Eliminar misión">🗑️</button>
                     </div>
                 \`).join('');
             } catch (err) {
-                console.error("Error cargando misiones:", err);
+                console.error("Error:", err);
             }
         }
 
@@ -232,7 +268,7 @@ app.get('/', (req, res) => {
 </html>`);
 });
 
-// Endpoints API
+// Endpoints de la API
 app.get('/api/tasks', async (req, res) => {
   try {
     const tasks = await Task.find();
@@ -271,5 +307,5 @@ app.delete('/api/tasks/:id', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`>> [NEXUS CORE V2] Servidor Activo en puerto ${PORT}`);
+  console.log(`>> [NEXUS CORE V3] Servidor Activo en puerto ${PORT}`);
 });
