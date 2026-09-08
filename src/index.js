@@ -10,7 +10,7 @@ app.use(cors());
 app.use(express.json());
 
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://mongodb:27017/tododb')
-  .then(() => console.log('>> [NEXUS CORE V3]: Conectado a MongoDB'))
+  .then(() => console.log('>> [NEXUS CORE V4]: Conectado a MongoDB'))
   .catch(err => console.error(' Error MongoDB:', err));
 
 const Task = mongoose.model('Task', {
@@ -36,13 +36,15 @@ app.get('/', (req, res) => {
             color: #d8b4fe;
             min-height: 100vh;
             padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             background-image: 
                 radial-gradient(circle at 10% 20%, rgba(147, 51, 234, 0.18) 0%, transparent 40%),
                 radial-gradient(circle at 90% 80%, rgba(217, 70, 239, 0.12) 0%, transparent 40%);
         }
-        .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
+        .container { max-width: 900px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 24px; }
         
-        /* Tarjetas estilo Cyberpunk Glassmorphism */
         .cyber-card {
             background: rgba(15, 5, 29, 0.85);
             border: 1px solid rgba(168, 85, 247, 0.35);
@@ -57,7 +59,6 @@ app.get('/', (req, res) => {
             box-shadow: 0 0 35px rgba(217, 70, 239, 0.3);
         }
 
-        /* Header */
         .header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .logo-area { display: flex; align-items: center; gap: 15px; }
         .pulse-dot { width: 14px; height: 14px; background-color: #d946ef; border-radius: 50%; box-shadow: 0 0 12px #d946ef; animation: pulse 1.5s infinite; }
@@ -67,15 +68,35 @@ app.get('/', (req, res) => {
         .badge-group { display: flex; gap: 8px; }
         .badge { background: rgba(88, 28, 135, 0.5); border: 1px solid rgba(168, 85, 247, 0.5); color: #e9d5ff; padding: 6px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: bold; }
 
-        /* Estadísticas Grid */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
         .stat-card { display: flex; justify-content: space-between; align-items: center; }
         .stat-label { font-size: 0.75rem; color: #c084fc; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
         .stat-value { font-family: 'Orbitron', sans-serif; font-size: 2.2rem; font-weight: 900; color: #ffffff; margin-top: 5px; }
         .stat-icon { font-size: 1.8rem; padding: 12px; background: rgba(147, 51, 234, 0.15); border-radius: 12px; border: 1px solid rgba(168, 85, 247, 0.3); }
 
-        /* Formulario */
-        .section-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: #e879f9; letter-spacing: 1.5px; margin-bottom: 16px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        .section-title { font-family: 'Orbitron', sans-serif; font-size: 0.85rem; color: #e879f9; letter-spacing: 1.5px; margin-bottom: 16px; text-transform: uppercase; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+        
+        /* Botones de filtro */
+        .filter-buttons { display: flex; gap: 8px; }
+        .filter-btn {
+            background: rgba(45, 10, 80, 0.6);
+            border: 1px solid rgba(168, 85, 247, 0.4);
+            color: #d8b4fe;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Orbitron', sans-serif;
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
+            border-color: #e879f9;
+            color: #fff;
+            box-shadow: 0 0 10px rgba(219, 39, 119, 0.5);
+        }
+
         .form-grid { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; }
         @media (max-width: 768px) { .form-grid { grid-template-columns: 1fr; } }
         
@@ -107,8 +128,7 @@ app.get('/', (req, res) => {
         }
         .cyber-btn:hover { box-shadow: 0 0 25px rgba(219, 39, 119, 0.8); transform: translateY(-2px); }
 
-        /* Lista de Tareas */
-        .tasks-list { display: flex; flex-direction: column; gap: 12px; }
+        .tasks-list { display: flex; flex-direction: column; gap: 12px; max-height: 350px; overflow-y: auto; padding-right: 4px; }
         .task-item {
             display: flex;
             justify-content: space-between;
@@ -130,6 +150,30 @@ app.get('/', (req, res) => {
         .delete-btn { background: none; border: none; cursor: pointer; font-size: 1.1rem; opacity: 0.7; transition: opacity 0.2s; }
         .delete-btn:hover { opacity: 1; }
         .empty-msg { text-align: center; color: #7e22ce; font-size: 0.8rem; padding: 20px; letter-spacing: 1px; }
+
+        /* Footer de Tecnologías */
+        footer {
+            text-align: center;
+            padding: 20px 0;
+            font-size: 0.75rem;
+            color: #a855f7;
+            margin-top: 20px;
+            border-top: 1px solid rgba(168, 85, 247, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        .tech-tags { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+        .tech-pill {
+            background: rgba(124, 58, 237, 0.15);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            color: #e9d5ff;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
@@ -141,7 +185,7 @@ app.get('/', (req, res) => {
                 <div class="pulse-dot"></div>
                 <div>
                     <h1>NEXUS CORE</h1>
-                    <span style="font-size: 0.7rem; color: #a855f7; letter-spacing: 2px;">SECURE SYSTEM // PROTOCOL V3.0</span>
+                    <span style="font-size: 0.7rem; color: #a855f7; letter-spacing: 2px;">SECURE SYSTEM // PROTOCOL V4.0</span>
                 </div>
             </div>
             <div class="badge-group">
@@ -185,9 +229,16 @@ app.get('/', (req, res) => {
             </form>
         </div>
 
-        <!-- Listado -->
+        <!-- Listado con Filtros -->
         <div class="cyber-card">
-            <div class="section-title">Base de Datos Activa // Misiones</div>
+            <div class="section-title">
+                <span>Base de Datos Activa // Misiones</span>
+                <div class="filter-buttons">
+                    <button class="filter-btn active" onclick="setFilter('all', this)">Todas</button>
+                    <button class="filter-btn" onclick="setFilter('pending', this)">Pendientes</button>
+                    <button class="filter-btn" onclick="setFilter('completed', this)">Completadas</button>
+                </div>
+            </div>
             <div id="tasks-container" class="tasks-list">
                 <!-- Se llena por JS -->
             </div>
@@ -195,41 +246,75 @@ app.get('/', (req, res) => {
 
     </div>
 
+    <!-- Footer Tecnologías -->
+    <footer>
+        <p>LABORATORIO DE DOCKERIZACIÓN, IMPLANTACIÓN Y DESPLIEGUE</p>
+        <div class="tech-tags">
+            <span class="tech-pill">Node.js</span>
+            <span class="tech-pill">Express</span>
+            <span class="tech-pill">MongoDB Atlas</span>
+            <span class="tech-pill">Docker</span>
+            <span class="tech-pill">Render Cloud</span>
+            <span class="tech-pill">Tailwind CSS / CSS Grid</span>
+        </div>
+    </footer>
+
     <script>
         const API_URL = '/api/tasks';
+        let currentFilter = 'all';
+        let cachedTasks = [];
 
         async function fetchTasks() {
             try {
                 const res = await fetch(API_URL);
                 const data = await res.json();
-                const tasks = data.tasks || data;
+                cachedTasks = data.tasks || data;
                 
-                document.getElementById('total-tasks').innerText = tasks.length;
-                const completed = tasks.filter(t => t.completed).length;
+                document.getElementById('total-tasks').innerText = cachedTasks.length;
+                const completed = cachedTasks.filter(t => t.completed).length;
                 document.getElementById('completed-tasks').innerText = completed;
-                document.getElementById('pending-tasks').innerText = tasks.length - completed;
+                document.getElementById('pending-tasks').innerText = cachedTasks.length - completed;
 
-                const container = document.getElementById('tasks-container');
-                if (tasks.length === 0) {
-                    container.innerHTML = '<div class="empty-msg">NINGÚN REGISTRO DETECTADO EN EL NÚCLEO</div>';
-                    return;
-                }
-
-                container.innerHTML = tasks.map(task => \`
-                    <div class="task-item \${task.completed ? 'completed' : ''}">
-                        <div class="task-left">
-                            <input type="checkbox" \${task.completed ? 'checked' : ''} onclick="toggleTask('\${task._id}', \${!task.completed})">
-                            <div>
-                                <div class="task-title">\${task.title}</div>
-                                <div class="task-desc">\${task.description || 'Sin parámetros adicionales'}</div>
-                            </div>
-                        </div>
-                        <button onclick="deleteTask('\${task._id}')" class="delete-btn" title="Eliminar misión">🗑️</button>
-                    </div>
-                \`).join('');
+                renderTasks();
             } catch (err) {
                 console.error("Error:", err);
             }
+        }
+
+        function setFilter(filter, btn) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderTasks();
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            
+            let filtered = cachedTasks;
+            if (currentFilter === 'pending') {
+                filtered = cachedTasks.filter(t => !t.completed);
+            } else if (currentFilter === 'completed') {
+                filtered = cachedTasks.filter(t => t.completed);
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="empty-msg">NINGÚN REGISTRO DETECTADO PARA ESTE FILTRO</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(task => \`
+                <div class="task-item \${task.completed ? 'completed' : ''}">
+                    <div class="task-left">
+                        <input type="checkbox" \${task.completed ? 'checked' : ''} onclick="toggleTask('\${task._id}', \${!task.completed})">
+                        <div>
+                            <div class="task-title">\${task.title}</div>
+                            <div class="task-desc">\${task.description || 'Sin parámetros adicionales'}</div>
+                        </div>
+                    </div>
+                    <button onclick="deleteTask('\${task._id}')" class="delete-btn" title="Eliminar misión">🗑️</button>
+                </div>
+            \`).join('');
         }
 
         document.getElementById('task-form').addEventListener('submit', async (e) => {
@@ -307,5 +392,5 @@ app.delete('/api/tasks/:id', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`>> [NEXUS CORE V3] Servidor Activo en puerto ${PORT}`);
+  console.log(`>> [NEXUS CORE V4] Servidor Activo en puerto ${PORT}`);
 });
